@@ -1,0 +1,1564 @@
+#pragma warning (disable : 4996)
+
+// 문제 C4: [TST]N QUEEN
+#if 0
+#include <stdio.h>
+#define MAX     (15)
+
+typedef struct
+{
+        int y, x;
+}NODE;
+NODE List[MAX];
+
+void Input(void);
+void DFS(int L);
+void Check_8(int r, int c, int num);
+void Print_List(void);
+void Print(void);
+
+int N;
+int Board[MAX][MAX];
+int dy[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
+int dx[8] = {-1, 0, 1, 1, 1, 0, -1, -1};        // 8방 체크
+int check0[MAX];
+int check1[2 * MAX];    //              / 체크
+int check2[2 * MAX];    //              \ 체크
+int count;
+int chk[MAX];
+
+int main(void)
+{
+        Input();
+        DFS(1);
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        count = 0;
+        scanf("%d", &N);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        Board[i][j] = 0;
+                }
+        }
+}
+
+void DFS(int L)
+{
+        int i;
+
+        if(L > N)
+        {
+                count++;
+                //printf("%d : ", count);
+                //Print_List();
+                return;
+        }
+
+        for(i = 1; i <= N; i++)
+        {
+                if( Board[L][i] == 0 && check0[i] == 0 && check1[L + i] == 0 && check2[i - L + N] == 0 )
+                {
+                        check0[i] = 1;
+                        check1[L + i] = 1;
+                        check2[i - L + N] = 1;
+                        Check_8(L, i, 1);
+                        List[L].y = L;
+                        List[L].x = i;
+
+                        DFS(L + 1);
+
+                        check0[i] = 0;
+                        check1[L + i] = 0;
+                        check2[i - L + N] = 0;
+                        Check_8(L, i, 0);
+                        List[L].y = 0;
+                        List[L].x = 0;
+                }
+
+        }
+}
+
+void Check_8(int r, int c, int num)
+{
+        int i, ny, nx;
+
+        for(i = 0; i < 8; i++)
+        {
+                ny = r + dy[i];
+                nx = c + dx[i];
+                if(ny < 1 || ny > N || nx < 1 || nx > N) continue;
+                Board[ny][nx] = num;
+        }
+}
+
+void Print_List(void)
+{
+        int i;
+
+        for(i = 1; i <= N; i++)
+        {
+                printf("y = %d, x = %d\n", List[i].y, List[i].x);
+        }
+        printf("\n\n");
+}
+
+void Print(void)
+{
+        printf("%d\n", count);
+}
+#endif
+
+
+
+// 문제 C9: [TST] 먼 목초지
+#if 0
+#include <stdio.h>
+#define MAX     (32)
+#define INF     (987654321)
+
+typedef struct
+{
+        int y, x;
+}NODE;
+NODE Q[MAX * MAX * 20];
+
+void Input(void);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Operation(void);
+void FF_BFS(int sy, int sx);
+int Find_Max(void);
+void Init_Visit(void);
+void Print(void);
+
+int N, A, B;
+int Mokcho[MAX][MAX];
+int Visit[MAX][MAX];
+int Wp, Rp;
+int dy[4] = {-1, 1, 0, 0};
+int dx[4] = {0, 0, -1, 1};
+int Max_Time;
+
+int main(void)
+{
+        Input();
+        Operation();
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+        char tmp[MAX];
+
+        scanf("%d %d %d", &N, &A, &B);
+        for(i = 1; i <= N; i++)
+        {
+                scanf("%s", tmp);
+                for(j = 1; j <= N; j++)
+                {
+                        if(tmp[j - 1] == '(') Mokcho[i][j] = 1;
+                        else Mokcho[i][j] = 9;
+                }
+        }
+}
+
+void InQ(int yy, int xx)
+{
+        Q[Wp].y = yy;
+        Q[Wp++].x = xx;
+}
+
+NODE * OutQ(void)
+{
+        return &(Q[Rp++]);
+}
+
+void FF_BFS(int sy, int sx)
+{
+        NODE * out = (NODE *)0x0;
+        int i;
+        int ny, nx;
+        int check;
+
+        Wp = Rp = 0;
+        InQ(sy, sx);
+        Visit[sy][sx] = 0;
+
+        while(Wp > Rp)
+        {
+                out = OutQ();
+                sy = out->y;
+                sx = out->x;
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];
+                        nx = sx + dx[i];
+                        if(ny < 1 || ny > N || nx < 1 || nx > N) continue;
+                        if(Mokcho[sy][sx] == Mokcho[ny][nx]) check = Visit[sy][sx] + A;
+                        else check = Visit[sy][sx] + B;
+                        if(Visit[ny][nx] > check)
+                        {
+                                Visit[ny][nx] = check;
+                                InQ(ny, nx);
+                        }
+                }
+        }
+}
+
+int Find_Max(void)
+{
+        int i, j;
+        int max = 0;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        if(max < Visit[i][j]) max = Visit[i][j];
+                }
+        }
+
+        return max;
+}
+
+void Operation(void)
+{
+        int i, j;
+        int max;
+
+        Max_Time = 0;
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        Init_Visit();
+                        FF_BFS(i, j);
+                        max = Find_Max();
+                        if(Max_Time < max) Max_Time = max;
+                }
+        }
+}
+
+void Init_Visit(void)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        Visit[i][j] = INF;
+                }
+        }
+}
+
+void Print(void)
+{
+//        int i, j;
+
+//        for(i = 1; i <= N; i++)
+//        {
+//                for(j = 1; j <= N; j++)
+//                {
+//                        printf("%d ", Mokcho[i][j]);
+//                }
+//                printf("\n");
+//        }
+
+        printf("%d\n", Max_Time);
+}
+#endif
+
+
+
+
+// Review - 1 (20190915)
+// 이차원 배열과 연산
+#if 0
+#include <stdio.h>
+#define MAX     (201)
+#define C_MAX	(101)
+
+typedef struct
+{
+	int num;
+	int cnt;
+}NODE;
+NODE check[C_MAX];              //
+
+void Input(void);
+void Init_Check(int m);
+void Sort(int max, int i, char p);
+void Operation(void);
+void Print(void);
+
+int A[MAX][MAX];
+int R, C, K;
+int count;
+int Max_no;
+int row, col;
+
+int main(void)
+{
+	//freopen("in.txt", "r", stdin);
+	Input();
+	Operation();
+	Print();
+
+	return 0;
+}
+
+void Input(void)
+{
+	int i, j;
+
+	scanf("%d %d %d", &R, &C, &K);
+	for (i = 1; i <= 3; i++)
+	{
+		for (j = 1; j <= 3; j++)
+		{
+			scanf("%d", &A[i][j]);
+		}
+	}
+	Init_Check(100);
+}
+
+void Init_Check(int m)
+{
+	int i;
+
+	for (i = 0; i <= m; i++)
+	{
+		check[i].num = i;
+		check[i].cnt = 0;
+	}
+}
+
+void Operation(void)
+{
+	int i, j;
+	int max;					// A[i][j] 값 중 가장 큰 값을 구해주기 위함..!! (정렬에 필요!)
+	row = 3;	col = 3;		// 첫 A는 무조건 3 * 3
+	Max_no = 0;					// R연산시에는 열만, C연산시에는 행만 늘어남! 그것의 max를 구해주기 위함!
+
+	count = 0;
+	while ( A[R][C] != K )
+	{
+		Max_no = 0;
+
+		max = 0;
+		// R연산
+		if (row >= col)
+		{
+			for (i = 1; i <= row; i++)
+			{
+				for (j = 1; j <= col; j++)
+				{
+					check[ A[i][j] ].cnt++;
+					if (max < A[i][j]) max = A[i][j];
+				}
+				for (j = 1; j <= col; j++) A[i][j] = 0;	// 연산 후 A[i][j]의 빈 곳을 0으로 채워줘야 하는데 미리 해줌
+				Sort(max, i, 'R');
+				Init_Check(max);
+			}
+			col = Max_no;
+		}
+		// C연산
+		else
+		{
+			for (j = 1; j <= col; j++)
+			{
+				for (i = 1; i <= row; i++)
+				{
+					check[ A[i][j] ].cnt++;
+					if (max < A[i][j]) max = A[i][j];
+				}
+				for (i = 1; i <= row; i++) A[i][j] = 0;
+				Sort(max, j, 'C');
+				Init_Check(max);
+			}
+			row = Max_no;
+		}
+		count++;
+
+		if (count > 100)
+		{
+			count = -1;
+			break;
+		}
+	}
+}
+
+void Sort(int max, int i, char p)
+{
+	int r, c, k;
+	int cnt = 0;
+	NODE tmp = { 0 };
+
+	for (r = 1; r < max; r++)
+	{
+		for (c = r + 1; c <= max; c++)
+		{
+			if ((check[r].cnt > check[c].cnt) ||
+				((check[r].cnt == check[c].cnt) && (check[r].num > check[c].num)))
+			{
+				tmp = check[r];
+				check[r] = check[c];
+				check[c] = tmp;
+			}
+		}
+	}
+
+	if (p == 'R')
+	{
+		for (k = 1; k <= 100; k++)
+		{
+			if (check[k].cnt == 0) continue;
+			cnt++;
+			A[i][2 * cnt - 1] = check[k].num;
+			A[i][2 * cnt] = check[k].cnt;
+		}
+	}
+	else
+	{
+		for (k = 1; k <= 100; k++)
+		{
+			if (check[k].cnt == 0) continue;
+			cnt++;
+			A[2 * cnt - 1][i] = check[k].num;
+			A[2 * cnt][i] = check[k].cnt;
+		}
+	}
+
+	if (Max_no < 2 * cnt) Max_no = 2 * cnt;
+}
+
+void Print(void)
+{
+	printf("%d\n", count);
+}
+#endif
+
+
+// Review - 2 (20190915)
+// 연구소 3 : 토마토와 비슷!!
+#if 0
+#include <stdio.h>
+#define MAX     (52)
+
+typedef struct
+{
+        int y, x;
+}NODE;
+NODE Virus[MAX * MAX];
+NODE List[11];
+NODE Q[MAX * MAX * 10];
+
+void Input(void);
+void InQ(int yy, int xx);
+NODE * OutQ(void);
+void Make_Combination(int L, int s_idx);
+int BFS(void);
+void Print(void);
+void Init_Visit(void);
+
+int N, M;
+int Lab[MAX][MAX];
+int Wp, Rp;
+int Visit[MAX][MAX];    // 초기화 필요!!!
+int virus_no;
+int Min_Time;
+int chk_0;
+int chk_2;
+int Min_Time_tmp;
+int dy[4] = {-1, 1, 0, 0};
+int dx[4] = {0, 0, -1, 1};
+
+int main(void)
+{
+        Input();
+        if(chk_0 == 0)
+        {
+                printf("%d\n", chk_0);
+                return 0;
+        }
+        Make_Combination(1, 1);
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        Min_Time = 987654321;
+        virus_no = 1;
+        scanf("%d %d", &N, &M);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        scanf("%d", &Lab[i][j]);
+                        if(Lab[i][j] == 0) chk_0++;     // 애초에 주어지는 0이 없다면, 퍼뜨리는데 0의 시간이 걸릴 것이므로 미리 판단
+                        else if(Lab[i][j] == 1) Lab[i][j] = 3;  // 벽 => 0, 1, 2가 주어질테데, 2가 만약 비활성이라면 0처럼 처리해주어야 함! 그래서 조건을 쉽게 주기 위해 나중에 3으로 바꿈<1>
+                        else if(Lab[i][j] == 2)
+                        {
+                                Virus[virus_no].y = i;
+                                Virus[virus_no++].x = j;
+                                //printf("virus_no = %d\n", virus_no);
+                                chk_2++;                // 처음에 주어지는 바이러들의 위치를 일단 저장! => 이 중에서 M개를 돌아가면서 선택적으로 큐에 넣을 것임!
+                        }
+                }
+        }
+}
+
+void InQ(int yy, int xx)
+{
+        Q[Wp].y = yy;
+        Q[Wp++].x = xx;
+}
+
+NODE * OutQ(void)
+{
+        return &(Q[Rp++]);
+}
+
+int BFS(void)
+{
+        NODE * out = (NODE *)0x0;
+        int i;
+        int ny, nx;
+        int sy, sx;
+        int check;
+        int chk = chk_0 + chk_2 - M;    // 바이러스를 퍼트릴 수 있는 공간(즉, 0으로 생각해줘야 함!)
+        int max = 0;
+
+        while(Wp > Rp)
+        {
+                out = OutQ();
+                sy = out->y;
+                sx = out->x;
+                for(i = 0; i < 4; i++)
+                {
+                        ny = sy + dy[i];
+                        nx = sx + dx[i];
+                        if(ny < 1 || ny > N || nx < 1 || nx > N) continue;
+                        check = Visit[sy][sx] + 1;
+                        if( (Lab[ny][nx] <= 2) && (Visit[ny][nx] > check) )     // 앞의 조건은 <1>에 의해서!
+                        {                                                       // Visit 배열은 최소값 갱신을 위해!
+                                InQ(ny, nx);
+                                Visit[ny][nx] = check;
+                                if( (Lab[ny][nx] == 0) && (max < check) )       // ★ 어차피 2가 비활성이라도(퍼지지는 않지만), 이미 바이러스에 감염이 된 상태이므로 고려 X ★
+                                {
+                                        max = check;
+                                }
+                                if(--chk == 0) return max;              // chk가 0이 되었다는 것은 다 감염이 되었다는 뜻!! 바로 리턴
+                        }
+                }
+        }
+
+        return 987654320;       // 하지만 chk가 0이 되지 않고 Wp==Rp가 되었다는 것은 더 이상 감염을 시키지 못 한다는 의미이므로 일단 엄청 큰 값을 리턴. 나중에 Min 값을 판단해 줄 것인데, 여기에서도 다른 작은 수로 걸리지지 않는다면 -1리턴!
+}
+
+// DFS와 DFS를 함께!
+void Make_Combination(int L, int s_idx)
+{
+        int i, j;//, k, l;
+
+        if(L > M)
+        {
+                //for(k = 1; k < L; k++)
+                //{
+                //        printf("%d,%d   ", List[k].y, List[k].x);
+                //}
+                //printf("\n");
+                Init_Visit();
+                Wp = Rp = 0;
+                for(j = 1; j < L; j++)
+                {
+                        InQ(List[j].y, List[j].x);
+                        Visit[List[j].y][List[j].x] = 0;
+                }
+                Min_Time_tmp = BFS();
+                //printf("Min_Time_tmp = %d\n", Min_Time_tmp);
+                //for(k = 1; k <= N; k++)
+                //{
+                //        for(l = 1; l <= N; l++)
+                //        {
+                //                printf("%10d", Visit[k][l]);
+                //        }
+                //        printf("\n");
+                //}
+                //printf("\n");
+                if(Min_Time > Min_Time_tmp) Min_Time = Min_Time_tmp;
+                return;
+        }
+
+        for(i = s_idx; i < virus_no - M + L; i++)
+        {
+                List[L].y = Virus[i].y;
+                List[L].x = Virus[i].x;
+
+                Make_Combination(L + 1, i + 1);
+
+                List[L].y = 0;
+                List[L].x = 0;
+        }
+}
+
+void Init_Visit(void)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        Visit[i][j] = 987654321;
+                }
+        }
+}
+
+void Print(void)
+{
+        if(Min_Time == 987654320) printf("-1\n");
+        else printf("%d\n", Min_Time);
+}
+#endif
+
+
+
+
+// Review - 3 (20190915)
+// 이렇게 제출했음;;; 근데 틀림 ㅋㅋ
+#if 0
+#include <stdio.h>
+#define MAX     (1000)
+
+void Input(void);
+void Init(void);
+void Make_Comb(void);
+void DFS(int L, int click, int result);
+void Print_List(int L);
+void Print_Comb(void);
+//void Print(void);
+
+int T;
+int N, O, M, W;
+int num[MAX];
+int comb[MAX];
+int comb_no;
+int oper[5];
+int flag;
+int List[20];
+
+void Init(void)
+{
+        int i;
+
+        comb_no = 1;
+        for(i = 0; i < MAX; i++)
+        {
+                num[i] = 21;
+        }
+        for(i = 0; i < 5; i++)
+        {
+                oper[i] = 0;
+        }
+}
+
+void Input(void)
+{
+        int i, tmp;
+
+        scanf("%d %d %d", &N, &O, &M);
+        for(i = 1; i <= N; i++)
+        {
+                scanf("%d", &tmp);
+                num[tmp] = 1;
+                comb[comb_no++] = tmp;
+        }
+        for(i = 1; i <= O; i++)
+        {
+                scanf("%d", &tmp);
+                oper[tmp] = 1;
+        }
+        scanf("%d", &W);
+}
+
+// 연산 X && 한 번의 클릭으로 만들 수 있는 한 자리수는 이미 있으므로,
+// 두 번의 클릭으로 만들 수 있는 두 자리 수와 세 번의 클릭으로 만들 수 있는 세자리수를 세팅해줌! (연산이 들어가는 순간 적어도 4번의 클릭 필요! 하지만 여기까지는 1 ~ 3번의 클릭만 필요!)
+void Make_Comb(void)
+{
+        int i, j, k;
+        int tmp = 0;
+        flag = 0;
+
+        // 두자리수 만듬 only by 2 clicks
+        for(i = 1; i <= 9; i++)
+        {
+                if(num[i] == 1)
+                {
+                        tmp = i * 10;
+                        for(j = 0; j <= 9; j++)
+                        {
+                                if(num[j] == 1)
+                                {
+                                        tmp += j;
+                                        comb[comb_no++] = tmp;
+                                        num[tmp] = 2;
+                                        tmp -= j;
+                                }
+                        }
+                        tmp = 0;
+                }
+        }
+
+        // 세 자리수 만듬 only by 3 clicks
+        for(i = 1; i <= 9; i++)
+        {
+                if(num[i] == 1)
+                {
+                        tmp = i * 100;
+                        for(j = 0; j <= 9; j++)
+                        {
+                                if(num[j] == 1)
+                                {
+                                        tmp += j * 10;
+                                        for(k = 0; k <= 9; k++)
+                                        {
+                                                if(num[k] == 1)
+                                                {
+                                                        tmp += k;
+                                                        comb[comb_no++] = tmp;
+                                                        num[tmp] = 3;
+                                                        tmp -= k;
+                                                }
+                                        }
+                                        tmp -= j * 10;
+                                }
+                        }
+                        tmp = 0;
+                }
+        }
+
+        for(i = 0; i < MAX; i++)
+        {
+                if(num[W] < 21) flag = 1;
+        }
+}
+
+void DFS(int L, int click, int result)
+{
+        int i, j, prev;
+
+        if(click > num[W]) return;
+        if(click > M) return;
+        //printf("L = %d, click = %d, result = %d\n", L, click, result);
+        if(result == W)
+        {
+                if(num[W] > click) num[W] = click;
+                //Print_List(L);
+                return;
+        }
+
+        for(i = 1; i < comb_no; i++)
+        {
+                List[L] = comb[i];
+                prev = result;
+                for(j = 1; j <= 4; j++)
+                {
+                        if(oper[j] != 1) continue;
+                        switch(j)
+                        {
+                                case 1:
+                                        result += List[L];
+                                        break;
+                                case 2:
+                                        result -= List[L];
+                                        break;
+                                case 3:
+                                        result *= List[L];
+                                        break;
+                                default:
+                                        if(List[L] == 0) continue;
+                                        result /= List[L];
+                                        break;
+                        }
+                        if(result < 0 || result > 999)
+                        {
+                                result = prev;
+                                continue;
+                        }
+                        DFS(L + 1, click + num[List[L]] + 1, result);
+                        result = prev;
+                }
+                List[L] = 0;
+        }
+
+}
+
+void Print_Comb(void)
+{
+        int i;
+
+        for(i = 1; i < comb_no; i++)
+        {
+                printf("%d ", comb[i]);
+        }
+        printf("\n");
+}
+
+
+void Print_List(int L)
+{
+        int i;
+
+        for(i = 1; i < L; i++)
+        {
+                printf("%d ", List[i]);
+        }
+        printf("\n");
+}
+
+/*
+void Print(void)
+{
+        printf("#%d ", T);
+        if(num[W] == 21) printf("-1\n");
+        else printf("%d\n", num[W]);
+}
+*/
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// 기본 제공코드는 임의 수정해도 관계 없습니다. 단, 입출력 포맷 주의
+// 아래 표준 입출력 예제 필요시 참고하세요.
+// 표준 입력 예제
+// int a;
+// float b, c;
+// double d, e, f;
+// char g;
+// char var[256];
+// long long AB;
+// scanf("%d", &a);                      // int 변수 1개 입력받는 예제
+// scanf("%f %f", &b, &c);               // float 변수 2개 입력받는 예제
+// scanf("%lf %lf %lf", &d, &e, &f);     // double 변수 3개 입력받는 예제
+// scanf("%c", &g);                      // char 변수 1개 입력받는 예제
+// scanf("%s", &var);                    // 문자열 1개 입력받는 예제
+// scanf("%lld", &AB);                   // long long 변수 1개 입력받는 예제
+/////////////////////////////////////////////////////////////////////////////////////////////
+// 표준 출력 예제
+// int a = 0;
+// float b = 1.0, c = 2.0;
+// double d = 3.0, e = 0.0; f = 1.0;
+// char g = 'b';
+// char var[256] = "ABCDEFG";
+// long long AB = 12345678901234567L;
+// printf("%d", a);                      // int 변수 1개 출력하는 예제
+// printf("%f %f", b, c);                // float 변수 2개 출력하는 예제
+// printf("%lf %lf %lf", d, e, f);       // double 변수 3개 출력하는 예제
+// printf("%c", g);                      // char 변수 1개 출력하는 예제
+// printf("%s", var);                    // 문자열 1개 출력하는 예제
+// printf("%lld", AB);                   // long long 변수 1개 출력하는 예제
+/////////////////////////////////////////////////////////////////////////////////////////////
+int main(void)
+{
+	int test_case, j;
+	int T;
+	/* 아래의 freopen 함수는 input.txt 를 read only 형식으로 연 후,
+	앞으로 표준 입력(키보드) 대신 input.txt 파일로부터 읽어오겠다는 의미의 코드입니다.
+	여러분이 작성한 코드를 테스트 할 때, 편의를 위해서 input.txt에 입력을 저장한 후,
+	freopen 함수를 이용하면 이후 scanf 를 수행할 때 표준 입력 대신 파일로부터 입력을 받아올 수 있습니다.
+	따라서 테스트를 수행할 때에는 아래 주석을 지우고 이 함수를 사용하셔도 좋습니다.
+	단, 채점을 위해 코드를 제출하실 때에는 반드시 freopen 함수를 지우거나 주석 처리 하셔야 합니다.
+	*/
+	// freopen("input.txt", "r", stdin);
+	/* 아래 코드를 수행하지 않으면 여러분의 프로그램이 제한 시간 초과로 강제 종료 되었을 때,
+	출력한 내용이 실제 표준 출력에 기록되지 않을 수 있습니다.
+	따라서 안전을 위해 반드시 setbuf(stdout, NULL); 을 수행하시기 바랍니다.
+	*/
+	setbuf(stdout, NULL);
+	scanf("%d", &T);
+	/*
+	여러 개의 테스트 케이스를 처리하기 위한 부분입니다.
+	*/
+	for (test_case = 1; test_case <= T; ++test_case)
+	{
+                Init();
+                Input();
+                Make_Comb();
+                //Print_Comb();
+                if(flag)
+                {
+                        printf("%d\n", num[W]);
+                        continue;
+                }
+                for(j = 1; j < comb_no; j++)
+                {
+                        List[1] = comb[j];
+                        //printf("[in main] L = %d, click = %d, result = %d\n", 2, num[j], comb[j]);
+                        DFS(2, num[comb[j]] + 1, comb[j]);
+                        List[1] = 0;
+                }
+                printf("#%d ", test_case);
+                if(num[W] == 21) printf("-1\n");
+                else printf("%d\n", num[W]);
+	}
+	return 0; //정상종료시 반드시 0을 리턴해야 합니다.
+}
+#endif
+
+
+
+
+// 다시 풀어봐야 함..!!
+// 4311. [연습문제] 오래된 스마트폰
+// =>BFS로 다시 풀어봐야지!! (20190915)
+#if 01
+#include <stdio.h>
+#define MAX     (1010)
+
+void Input(void);
+void Init_Click(void);
+void Make_Num_Click(void);
+void Operation(void);
+int Choose_One(int a, int b, int oper);
+int BFS(void);
+
+int N, O, M, W;
+int click[MAX];
+int oper[5];
+int flag;
+int Max_Num;
+int Q[MAX * MAX];
+int Wp, Rp;
+
+int main(void)
+{
+	int test_case, r;
+	int T;
+	/* 아래의 freopen 함수는 input.txt 를 read only 형식으로 연 후,
+	앞으로 표준 입력(키보드) 대신 input.txt 파일로부터 읽어오겠다는 의미의 코드입니다.
+	여러분이 작성한 코드를 테스트 할 때, 편의를 위해서 input.txt에 입력을 저장한 후,
+	freopen 함수를 이용하면 이후 scanf 를 수행할 때 표준 입력 대신 파일로부터 입력을 받아올 수 있습니다.
+	따라서 테스트를 수행할 때에는 아래 주석을 지우고 이 함수를 사용하셔도 좋습니다.
+	단, 채점을 위해 코드를 제출하실 때에는 반드시 freopen 함수를 지우거나 주석 처리 하셔야 합니다.
+	*/
+	// freopen("input.txt", "r", stdin);
+	/* 아래 코드를 수행하지 않으면 여러분의 프로그램이 제한 시간 초과로 강제 종료 되었을 때,
+	출력한 내용이 실제 표준 출력에 기록되지 않을 수 있습니다.
+	따라서 안전을 위해 반드시 setbuf(stdout, NULL); 을 수행하시기 바랍니다.
+	*/
+	setbuf(stdout, NULL);
+	scanf("%d", &T);
+	/*
+	여러 개의 테스트 케이스를 처리하기 위한 부분입니다.
+	*/
+	for (test_case = 1; test_case <= T; ++test_case)
+	{
+	        Init_Click();
+                Input();
+                Make_Num_Click();
+                if(flag)
+                {
+                        printf("#%d %d\n", T, click[W]);
+                        continue;
+                }
+                Operation();
+                r = BFS();
+                r++;
+                printf("#%d %d\n", T, ((r <= M) ? r : -1) );
+	}
+
+        return 0;
+}
+
+void Init_Click(void)
+{
+        int i;
+
+        for(i = 1; i < MAX; i++)
+        {
+                click[i] = 100;
+        }
+        for(i = 0; i < 5; i++)
+        {
+                oper[i] = 0;
+        }
+}
+
+void Input(void)
+{
+        int i, tmp;
+
+        scanf("%d %d %d", &N, &O, &M);
+        for(i = 1; i <= N; i++)
+        {
+                scanf("%d", &tmp);
+                click[tmp] = 1;
+        }
+        for(i = 1; i <= O; i++)
+        {
+                scanf("%d", &oper[i]);
+        }
+        scanf("%d", &W);
+}
+
+void Make_Num_Click(void)
+{
+        int i, j, k;
+        int tmp;
+        flag = 0;
+        Max_Num = 0;
+
+        // 두 자리수 만들기 by only 2 clicks
+        for(i = 1; i <= 9; i++)
+        {
+                if(click[i] != 1) continue;
+                tmp = i * 10;
+                for(j = 0; j <= 9; j++)
+                {
+                        if(click[j] != 1) continue;
+                        tmp += j;
+                        click[tmp] = 2;
+                        tmp -= j;
+                }
+                tmp = 0;
+        }
+
+        // 세 자리수 만들기 by only 3 clicks
+        for(i = 1; i <= 9; i++)
+        {
+                if(click[i] != 1) continue;
+                tmp = i * 100;
+                for(j = 0; j <= 9; j++)
+                {
+                        if(click[j] != 1) continue;
+                        tmp += j * 10;
+                        for(k = 0; k <= 9; k++)
+                        {
+                                if(click[k] != 1) continue;
+                                tmp += k;
+                                click[tmp] = 3;
+                                if(Max_Num < tmp) Max_Num = tmp;
+                                tmp -= k;
+                        }
+                        tmp -= j * 10;
+                }
+                tmp = 0;
+        }
+
+        if(click[W] <= M) flag = 1;
+}
+
+void Operation(void)
+{
+        int i;
+        Wp = Rp = 0;
+
+        for(i = 1; i <= Max_Num; i++)
+        {
+                if(click[i] <= 3)
+                {
+                        Q[Wp++] = i;
+                }
+        }
+}
+
+int BFS(void)
+{
+        int i, j, check;
+        int r;
+        int out;
+
+        while(Wp > Rp)
+        {
+                //printf("click[W] = %d\n", click[W]);
+                out = Q[Rp++];
+                if(out == 0) continue;
+                for(i = 1; i <= Max_Num; i++)
+                {
+                        if(click[i] <= 3)
+                        {
+                                for(j = 1; j <= O; j++)
+                                {
+                                        r = Choose_One(out, i, oper[j]);
+                                        check = click[i] + click[out] + 1;
+                                        if(check >= M) continue;;
+                                        if(click[r] > check)
+                                        {
+                                                click[r] = check;
+                                                Q[Wp++] = r;
+                                        }
+                                }
+                        }
+                }
+        }
+
+        return click[W];
+}
+
+int Choose_One(int a, int b, int op)
+{
+        switch(op)
+        {
+        case 1: return a + b;
+        case 2: return a - b;
+        case 3: return a * b;
+        default:
+                if(b == 0) return 0;
+                return a / b;
+        }
+}
+#endif
+
+
+
+// 20190915 13:17부터 시작!!!
+// 설계 : 약 30분 걸림(그런데 조급해져서 일단 코드 짜보기로 함!)
+// 코드 :
+// 디버그 :
+// 2048 (Easy)
+#if 0
+#include <stdio.h>
+#define MAX     (25)
+
+typedef struct
+{
+        int arr[MAX][MAX];
+}NODE;
+NODE List[7];
+
+void Input(void);
+void DFS(int L);
+void Copy_Arr(int L);
+void Clear_Arr(int L);
+int Same_Check(int L);
+void Make_Board(int dir);
+void Left(void);
+void Right(void);
+void Up(void);
+void Down(void);
+void Get_Max_Block(void);
+void Print(void);
+
+int N;          // 보드의 크기
+int Board[MAX][MAX];
+int Max_Block;
+int cnt;
+
+int main(void)
+{
+        Input();
+        DFS(1);
+        Print();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        Max_Block = 0;
+        scanf("%d", &N);
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        scanf("%d", &Board[i][j]);
+                        if(Max_Block < Board[i][j]) Max_Block = Board[i][j];
+                }
+        }
+}
+
+void DFS(int L)
+{
+        int i;
+
+        //printf("[%d] L = %d\n", ++cnt, L);
+
+        if( L > 5 || Same_Check(L - 1) )
+        {
+                return;
+        }
+
+        for(i = 1; i <= 4; i++)
+        {
+                Copy_Arr(L);
+                Make_Board(i);
+                DFS(L + 1);
+                Clear_Arr(L);
+        }
+}
+
+void Copy_Arr(int L)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        List[L].arr[i][j] = Board[i][j];
+                }
+        }
+}
+
+void Clear_Arr(int L)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        Board[i][j] = List[L].arr[i][j];
+                        List[L].arr[i][j] = 0;
+                }
+        }
+}
+
+int Same_Check(int L)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        if( List[L].arr[i][j] != Board[i][j] ) return 0;
+                }
+        }
+
+        return 1;
+}
+
+void Make_Board(int dir)
+{
+        //int i, j;
+
+        switch(dir)
+        {
+                // 좌
+                case 1:
+                        Left();
+                        break;
+                // 우
+                case 2:
+                        Right();
+                        break;
+                // 상
+                case 3:
+                        Up();
+                        break;
+                // 하
+                default:
+                        Down();
+                        break;
+        }
+        Get_Max_Block();
+
+        /*printf("\n");
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        printf("%d ", Board[i][j]);
+                }
+                printf("\n");
+        }
+        printf("\n");*/
+}
+
+void Left(void)
+{
+        int i, j;
+        int n, no;
+        int tmp[MAX] = { 0 };
+
+        for(i = 1; i <= N; i++)
+        {
+                no = 1;         n = 1;
+                for(j = 1; j <= N; j++) tmp[j] = 0;
+                for(j = 1; j <= N; j++)
+                {
+                        if(Board[i][j] == 0) continue;
+                        tmp[no++] = Board[i][j];
+                }
+                for(j = 1; j < no; j++)
+                {
+                        if(tmp[j] == tmp[j + 1])
+                        {
+                                tmp[j] *= 2;
+                                Board[i][n++] = tmp[j];
+                                tmp[j + 1] = 0;
+                                j++;
+                        }
+                        else Board[i][n++] = tmp[j];
+                }
+                for(j = n; j <= N; j++)
+                {
+                        Board[i][j] = 0;
+                }
+        }
+}
+
+void Right(void)
+{
+        int i, j;
+        int n, no;
+        int tmp[MAX] = { 0 };
+
+        for(i = 1; i <= N; i++)
+        {
+                no = N;         n = N;
+                for(j = 1; j <= N; j++) tmp[j] = 0;
+                for(j = N; j >= 1; j--)
+                {
+                        if(Board[i][j] == 0) continue;
+                        tmp[no--] = Board[i][j];
+                }
+                for(j = N; j > no; j--)
+                {
+                        if(tmp[j] == tmp[j - 1])
+                        {
+                                tmp[j] *= 2;
+                                Board[i][n--] = tmp[j];
+                                tmp[j - 1] = 0;
+                                j--;
+                        }
+                        else Board[i][n--] = tmp[j];
+                }
+                for(j = 1; j <= n; j++)
+                {
+                        Board[i][j] = 0;
+                }
+        }
+}
+
+void Up(void)
+{
+        int i, j;
+        int n, no;
+        int tmp[MAX] = { 0 };
+
+        for(j = 1; j <= N; j++)
+        {
+                no = 1;         n = 1;
+                for(i = 1; i <= N; i++) tmp[i] = 0;
+                for(i = 1; i <= N; i++)
+                {
+                        if(Board[i][j] == 0) continue;
+                        tmp[no++] = Board[i][j];
+                }
+                for(i = 1; i < no; i++)
+                {
+                        if(tmp[i] == tmp[i + 1])
+                        {
+                                tmp[i] *= 2;
+                                Board[n++][j] = tmp[i];
+                                tmp[i + 1] = 0;
+                                i++;
+                        }
+                        else Board[n++][j] = tmp[i];
+                }
+                for(i = n; i <= N; i++)
+                {
+                        Board[i][j] = 0;
+                }
+        }
+}
+
+void Down(void)
+{
+        int i, j;
+        int n, no;
+        int tmp[MAX] = { 0 };
+
+        for(j = 1; j <= N; j++)
+        {
+                no = N;         n = N;
+                for(i = 1; i <= N; i++) tmp[i] = 0;
+                for(i = N; i >= 1; i--)
+                {
+                        if(Board[i][j] == 0) continue;
+                        tmp[no--] = Board[i][j];
+                }
+                for(i = N; i > no; i--)
+                {
+                        if(tmp[i] == tmp[i - 1])
+                        {
+                                tmp[i] *= 2;
+                                Board[n--][j] = tmp[i];
+                                tmp[i - 1] = 0;
+                                i--;
+                        }
+                        else Board[n--][j] = tmp[i];
+                }
+                for(i = 1; i <= n; i++)
+                {
+                        Board[i][j] = 0;
+                }
+        }
+}
+
+void Get_Max_Block(void)
+{
+        int i, j;
+
+        for(i = 1; i <= N; i++)
+        {
+                for(j = 1; j <= N; j++)
+                {
+                        if(Board[i][j] > Max_Block) Max_Block = Board[i][j];
+                }
+        }
+}
+
+void Print(void)
+{
+        printf("%d\n", Max_Block);
+}
+#endif
+
+
+
+
+
+// 20190915
+// 주사위 굴리기
+#if 0
+#include <stdio.h>
+#define MAX     (25)
+#define CAX     (1001)
+
+typedef struct
+{
+     int up;            // 1
+     int behind;        // 2
+     int right;         // 3
+     int left;          // 4
+     int front;         // 5
+     int down;          // 6
+}CUBE;
+CUBE Dice;
+
+typedef struct
+{
+        int yy, xx;
+}NODE;
+NODE Location;
+
+void Input(void);
+void Operation(void);
+
+int N, M;
+int Map[MAX][MAX];
+int x, y;
+int K;
+int Command[CAX];
+int dy[5] = {0, 0, 0, -1, 1};
+int dx[5] = {0, 1, -1, 0, 0};
+
+int main(void)
+{
+        Input();
+        Operation();
+
+        return 0;
+}
+
+void Input(void)
+{
+        int i, j;
+
+        scanf("%d %d %d %d %d", &N, &M, &x, &y, &K);
+        for(i = 0; i < N; i++)
+        {
+                for(j = 0; j < M; j++)
+                {
+                        scanf("%d", &Map[i][j]);
+                }
+        }
+        for(i = 1; i <= K; i++)
+        {
+                scanf("%d", &Command[i]);
+        }
+}
+
+void Operation(void)
+{
+        int i;
+        int ny, nx;
+        int tmp;
+        Dice.up = Dice.behind = Dice.left = Dice.right = Dice.front = Dice.down = 0;
+        Location.yy = x;        Location.xx = y;
+
+        for(i = 1; i <= K; i++)
+        {
+                ny = Location.yy + dy[Command[i]];
+                nx = Location.xx + dx[Command[i]];
+                if(ny < 0 || nx < 0 || ny >= N || nx >= M) continue;
+
+                Location.yy = ny;
+                Location.xx = nx;
+
+                switch(Command[i])
+                {
+                        case 1:
+                                tmp = Dice.down;
+                                Dice.down = Dice.right;
+                                Dice.right = Dice.up;
+                                Dice.up = Dice.left;
+                                Dice.left = tmp;
+                                break;
+                        case 2:
+                                tmp = Dice.down;
+                                Dice.down = Dice.left;
+                                Dice.left = Dice.up;
+                                Dice.up = Dice.right;
+                                Dice.right = tmp;
+                                break;
+                        case 3:
+                                tmp = Dice.behind;
+                                Dice.behind = Dice.up;
+                                Dice.up = Dice.front;
+                                Dice.front = Dice.down;
+                                Dice.down = tmp;
+                                break;
+                        default:
+                                tmp = Dice.down;
+                                Dice.down = Dice.front;
+                                Dice.front = Dice.up;
+                                Dice.up = Dice.behind;
+                                Dice.behind = tmp;
+                                break;
+                }
+
+                if(Map[ny][nx] == 0)
+                {
+                        Map[ny][nx] = Dice.down;
+                }
+                else
+                {
+                        Dice.down = Map[ny][nx];
+                        Map[ny][nx] = 0;
+                }
+                printf("%d\n", Dice.up);
+        }
+}
+#endif
